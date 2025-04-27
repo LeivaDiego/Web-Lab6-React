@@ -266,53 +266,56 @@
 
             // Si hay dos cartas volteadas
             if (newFlippedCards.length === 2) {
-                // Inicializar las variables para las cartas
-                const [firstId, secondId] = newFlippedCards;
-                const firstCard = cards.find(card => card.id === firstId);
-                const secondCard = cards.find(card => card.id === secondId);
+                // Ligero retraso para permitir la animación de voltear
+                setTimeout(() => {
+                    // Inicializar las variables para las cartas
+                    const [firstId, secondId] = newFlippedCards;
+                    const firstCard = cards.find(card => card.id === firstId);
+                    const secondCard = cards.find(card => card.id === secondId);
 
-                // Verificar si las cartas coinciden
-                if (firstCard.image === secondCard.image) {
-                    // Si coinciden, agregar a las cartas emparejadas
-                    setMatchedCards(prev => [...prev, firstId, secondId]);
-                    
-                    // Animar las cartas emparejadas
-                    setAnimatingCards(prev => ({
-                        ...prev,
-                        [firstId]: 'matched',
-                        [secondId]: 'matched'
-                    }));
+                    // Verificar si las cartas coinciden
+                    if (firstCard.image === secondCard.image) {
+                        // Si coinciden, agregar a las cartas emparejadas
+                        setMatchedCards(prev => [...prev, firstId, secondId]);
+                        
+                        // Animar las cartas emparejadas
+                        setAnimatingCards(prev => ({
+                            ...prev,
+                            [firstId]: 'matched',
+                            [secondId]: 'matched'
+                        }));
 
-                    // Quitar la animación después de 1 segundo
-                    setTimeout(() => {
-                        setAnimatingCards(prev => {
-                            const updated = { ...prev };
-                            delete updated[firstId];
-                            delete updated[secondId];
-                            return updated;
-                        });
-                        setFlippedCards([]); // Reiniciar las cartas seleccionadas por el jugador
-                    }, 1000);
+                        // Quitar la animación después de 1 segundo
+                        setTimeout(() => {
+                            setAnimatingCards(prev => {
+                                const updated = { ...prev };
+                                delete updated[firstId];
+                                delete updated[secondId];
+                                return updated;
+                            });
+                            setFlippedCards([]); // Reiniciar las cartas seleccionadas por el jugador
+                        }, 1000);
 
-                } else {
-                    // Si no coinciden, agregar animación de error
-                    setAnimatingCards(prev => ({
-                        ...prev,
-                        [firstId]: 'mismatch',
-                        [secondId]: 'mismatch'
-                    }));
+                    } else {
+                        // Si no coinciden, agregar animación de error
+                        setAnimatingCards(prev => ({
+                            ...prev,
+                            [firstId]: 'mismatch',
+                            [secondId]: 'mismatch'
+                        }));
 
-                    // Esperar 1 segundo y voltear las cartas de nuevo
-                    setTimeout(() => {
-                        setAnimatingCards(prev => {
-                            const updated = { ...prev };
-                            delete updated[firstId];
-                            delete updated[secondId];
-                            return updated;
-                        });
-                        setFlippedCards([]); // Reiniciar las cartas seleccionadas por el jugador
-                    }, 1000);
-                }
+                        // Esperar 1 segundo y voltear las cartas de nuevo
+                        setTimeout(() => {
+                            setAnimatingCards(prev => {
+                                const updated = { ...prev };
+                                delete updated[firstId];
+                                delete updated[secondId];
+                                return updated;
+                            });
+                            setFlippedCards([]); // Reiniciar las cartas seleccionadas por el jugador
+                        }, 1000);
+                    }
+                }, 400); // Tiempo de retraso para permitir la animación de voltear
             }
         }
 
