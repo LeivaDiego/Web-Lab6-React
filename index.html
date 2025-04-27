@@ -182,12 +182,6 @@
 
 <body>
   <h1>Kaiju Memory Game</h1>
-  
-  <div class="hud">
-    <div>⏱️ Time: 0:00</div>
-    <div>🕹️ Moves: 0</div>
-    <div>🏆 Best Score: --</div>
-  </div>
 
   <div class="game-container">
     <div id="root"></div>
@@ -215,10 +209,26 @@
 
     // Componente principal del juego
     function MemoryGame() {
+        // Estados del juego
         const [cards, setCards] = React.useState([]); // Array de cartas
         const [flippedCards, setFlippedCards] = React.useState([]); // Cartas elegidas por el jugador
         const [matchedCards, setMatchedCards] = React.useState([]); // Cartas emparejadas
         const [animatingCards, setAnimatingCards] = React.useState({}); // Cartas en animación
+        // Estado para el temporizador y movimientos
+        const [time, setTime] = React.useState(0); // Temporizador
+        const [moves, setMoves] = React.useState(0); // Movimientos
+        const [isRunning, setIsRunning] = React.useState(false); // Estado del temporizador
+
+        // Iniciar el temporizador
+        React.useEffect(() => {
+            let timer;
+            if (isRunning) {
+                timer = setInterval(() => {
+                    setTime(prev => prev + 1);
+                }, 1000);
+            }
+            return () => clearInterval(timer);
+        }, [isRunning]);
 
         // Inicializar el juego con 16 cartas (8 pares)
         React.useEffect(() => {
@@ -253,12 +263,15 @@
 
         // Manejo de clic en la carta
         function handleCardClick(id) {
-            // Verificar si la carta ya está emparejada
-            if (matchedCards.includes(id)) return ;
-            // Verificar si hay dos cartas emparejadas
-            if (flippedCards.length === 2) return ;
-            // Verificar si la carta ya está volteada
-            if (flippedCards.includes(id)) return ;
+            // Verificar si la carta ya está emparejada, 
+            // si ya está en la lista de cartas emparejadas
+            // o si ya está en la lista de cartas volteadas
+            if (matchedCards.includes(id) || flippedCards.length === 2 || flippedCards.includes(id)) return ;
+
+            // Iniciar el temporizador si no está en marcha
+            if (!isRunning) {
+                setIsRunning(true);
+            }
 
             // Voltear la carta
             const newFlippedCards = [...flippedCards, id];
@@ -266,6 +279,9 @@
 
             // Si hay dos cartas volteadas
             if (newFlippedCards.length === 2) {
+                // Incrementar el contador de movimientos
+                setMoves(prev => prev + 1);
+
                 // Ligero retraso para permitir la animación de voltear
                 setTimeout(() => {
                     // Inicializar las variables para las cartas
@@ -319,19 +335,34 @@
             }
         }
 
+        // Formato de tiempo para el temporizador mm:ss
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
         // Renderizar las cartas
         return (
-            <div className="card-grid">
-                {cards.map(card => (
-                    <Card 
-                        key={card.id} 
-                        image={card.image} 
-                        flipped={flippedCards.includes(card.id) || matchedCards.includes(card.id)}
-                        animation={animatingCards[card.id]}
-                        onClick={() => handleCardClick(card.id)} 
-                    />
-                ))}
-            </div>
+            <>
+                <div className="hud">
+                    <div>⏱️ Time: {formatTime(time)}</div>
+                    <div>🕹️ Moves: {moves}</div>
+                    <div>🏆 Best Score: --</div> {/*TODO: Record de victoria*/}
+                </div>
+
+                <div className="card-grid">
+                    {cards.map(card => (
+                        <Card 
+                            key={card.id} 
+                            image={card.image} 
+                            flipped={flippedCards.includes(card.id) || matchedCards.includes(card.id)}
+                            animation={animatingCards[card.id]}
+                            onClick={() => handleCardClick(card.id)} 
+                        />
+                    ))}
+                </div>
+            </>
         )
     }
 
