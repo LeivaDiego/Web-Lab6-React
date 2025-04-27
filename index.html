@@ -11,19 +11,29 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
+
+    /* Fuente personalizada */
+    @font-face {
+    font-family: "KaijuFont";
+    src: url('./assets/fonts/Godzilla.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    }
+
     /* Estilos generales */
     body {
       margin: 0;
       padding: 0;
-      background: url('assets/images/main-background.jpeg') center/cover no-repeat fixed;
+      background: url('assets/images/background.jpeg') center/cover no-repeat fixed;
       font-family: 'Arial', sans-serif;
-      color: white;
+      color: black;
       text-align: center;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
+    /* Capa de opacidad */
     body::before {
     content: "";
     position: fixed;
@@ -35,17 +45,19 @@
     z-index: -1;
     }
 
+    /* Titulo */
     h1 {
-      margin-top: 20px;
       font-family: 'KaijuFont', sans-serif;
-      font-size: 2.5rem;
-      text-shadow: 2px 2px 5px black;
+      font-size: 3rem;
+      color: white;
+      text-shadow: 2px 2px 2px black;
     }
 
     /* HUD */
     .hud {
       display: flex;
       justify-content: center;
+      color: white;
       gap: 2rem;
       margin: 10px 0 20px;
       font-size: 1.2rem;
@@ -63,44 +75,34 @@
     /* Grid de cartas */
     .card-grid {
       display: grid;
-      grid-template-columns: repeat(5, 100px);
-      grid-gap: 15px;
+      grid-template-columns: repeat(4, 150px);
+      grid-gap: 25px;
       justify-content: center;
     }
 
-    /* Carta base (sin lógica todavía) */
+    /* Carta base */
     .card {
-      width: 100px;
-      height: 140px;
-      background: rgba(255, 255, 255, 0.2);
-      border: 2px solid white;
+      width: 150px;
+      height: 150px;
+      background: grey;
+      border: 5px solid white;
       border-radius: 10px;
       cursor: pointer;
       transition: transform 0.3s;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
     }
 
     .card:hover {
       transform: scale(1.05);
     }
-
-    /* Fuente personalizada */
-    @font-face {
-    font-family: "KaijuFont";
-    src: url('./assets/fonts/Godzilla.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-}
-
   </style>
 </head>
 
 <body>
   <h1>Kaiju Memory Game</h1>
-
+  
   <div class="hud">
-    <div>⏱ Time: 0:00</div>
-    <div>🎯 Moves: 0</div>
+    <div>⏱️ Time: 0:00</div>
+    <div>🕹️ Moves: 0</div>
     <div>🏆 Best Score: --</div>
   </div>
 
@@ -115,7 +117,7 @@
       return (
         <div className="card-grid">
           {/* Grid vacio */}
-          {Array.from({ length: 30 }).map((_, index) => (
+          {Array.from({ length: 16 }).map((_, index) => (
             <div key={index} className="card"></div>
           ))}
         </div>
