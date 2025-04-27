@@ -211,7 +211,7 @@
 
     // Componente principal del juego
     function MemoryGame() {
-        // Estados del juego
+        // Estados de las cartas
         const [cards, setCards] = React.useState([]); // Array de cartas
         const [flippedCards, setFlippedCards] = React.useState([]); // Cartas elegidas por el jugador
         const [matchedCards, setMatchedCards] = React.useState([]); // Cartas emparejadas
@@ -220,6 +220,9 @@
         const [time, setTime] = React.useState(0); // Temporizador
         const [moves, setMoves] = React.useState(0); // Movimientos
         const [isRunning, setIsRunning] = React.useState(false); // Estado del temporizador
+        // Estado del juego
+        const [gameOver, setGameOver] = React.useState(false); // Estado del juego
+
 
         // Iniciar el temporizador
         React.useEffect(() => {
@@ -232,8 +235,8 @@
             return () => clearInterval(timer);
         }, [isRunning]);
 
-        // Inicializar el juego con 16 cartas (8 pares)
-        React.useEffect(() => {
+        // Inicializar el juego
+        function initializeGame() {
             // Array de kaijus (imágenes)
             const kaijus = [
                 "anguirus", "baragon", "battra", "battra-larva", "biollante", "burning-godzilla",
@@ -253,13 +256,24 @@
             const pairedCards = [...selectedKaijus, ...selectedKaijus].sort(() => 0.5 - Math.random());
             
             // Crear objetos de carta con ID e imagen
-            const dummyCards = pairedCards.map((name, index) => ({
+            const kaijuCards = pairedCards.map((name, index) => ({
                 id: index,
                 image: `./assets/images/kaijus/${name}.png` // Ruta de la imagen
             }));
-            
+
             // Setear las cartas en el estado
-            setCards(dummyCards);
+            setCards(kaijuCards);
+            setFlippedCards([]); // Reiniciar cartas elegidas
+            setMatchedCards([]); // Reiniciar cartas emparejadas
+            setAnimatingCards({}); // Reiniciar cartas en animación
+            setTime(0); // Reiniciar temporizador
+            setMoves(0); // Reiniciar movimientos
+            setIsRunning(false); // Reiniciar estado del temporizador
+            setGameOver(false); // Reiniciar estado del juego
+        }
+
+        React.useEffect(() => {
+            initializeGame(); // Inicializar el juego al cargar
         }, []);
 
 
@@ -294,7 +308,17 @@
                     // Verificar si las cartas coinciden
                     if (firstCard.image === secondCard.image) {
                         // Si coinciden, agregar a las cartas emparejadas
-                        setMatchedCards(prev => [...prev, firstId, secondId]);
+                        setMatchedCards(prev => {
+                            const updatedMatches = [...prev, firstId, secondId];
+
+                            // Verificar si se han emparejado todas las cartas
+                            if (updatedMatches.length === cards.length) {
+                                setGameOver(true); // Terminar el juego
+                                setTimeout(() => setGameOver(true), 300);
+                                setIsRunning(false); // Detener el temporizador
+                            }
+                            return updatedMatches;
+                        });
                         
                         // Animar las cartas emparejadas
                         setAnimatingCards(prev => ({
@@ -344,6 +368,25 @@
             return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
         }
 
+        // Calcular puntos obtenidos al ganar
+        function calculateScore(moves, time) {
+            if (time === 0) return 0; // Evitar división por cero
+
+            // Calcular la puntuación
+            const baseScore = 2000;
+            const movePenalty = moves * 5; // Penalización por movimientos 5 puntos por movimiento
+            const timePenalty = time * 2; // Penalización por tiempo 2 puntos por segundo
+            return Math.max(0, baseScore - movePenalty - timePenalty); // Asegurarse de que la puntuación no sea negativa
+        }
+
+        // Obtener estrellas de la puntuación
+        function getStars(score) {
+            if (score >= 1800) return 3;
+            if (score >= 1400) return 2;
+            if (score >= 1000) return 1;
+            return 0;
+        }
+
         // Renderizar las cartas
         return (
             <>
@@ -364,6 +407,41 @@
                         />
                     ))}
                 </div>
+
+                {gameOver && (
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                        backgroundColor: 'rgba(0,0,0,0.8)', color: 'white',
+                        display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+                        fontSize: '2rem', zIndex: 1000
+                    }}>
+                    <div>🎉 ¡Felicidades!</div>
+                    <div>⏱️ Tiempo: {formatTime(time)}</div>
+                    <div>🕹️ Movimientos: {moves}</div>
+                    <div>🏆 Score: {calculateScore(moves, time)}</div>
+                    
+                    <div style={{ marginTop: '10px', fontSize: '2.5rem' }}>
+                        {Array(3).fill(0).map((_, idx) => (
+                            idx < getStars(calculateScore(moves, time)) ? '⭐' : '❌'
+                        ))}
+                    </div>
+                        
+                    <button 
+                        onClick={initializeGame}
+                        style={{ 
+                            marginTop: '20px', 
+                            fontSize: '1.5rem', 
+                            padding: '10px 20px', 
+                            borderRadius: '10px', 
+                            border: 'none', 
+                            background: 'limegreen', 
+                            color: 'white', 
+                            cursor: 'pointer'
+                        }}>🔄 Reiniciar Juego
+                    </button>
+                    </div>
+                )}
+
             </>
         )
     }
