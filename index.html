@@ -24,7 +24,7 @@
     body {
       margin: 0;
       padding: 0;
-      background: url('./assets/images/cracked-magma-texture.jpeg') center/cover no-repeat fixed;
+      background: url('./assets/images/cracked-magma-texture.png') center/cover no-repeat fixed;
       font-family: 'Arial', sans-serif;
       color: black;
       text-align: center;
@@ -86,14 +86,18 @@
         width: 150px;
         height: 150px;
         perspective: 1000px;
-        transition: transform 0.3s;
+        transition: transform 0.3s ease-in;
     }
 
     /* Carta al pasar el mouse */
-    .card:hover {
+    .card:hover:not(.flipped) {
         transform: scale(1.05);
         box-shadow: 0 5px 25px rgba(255, 100, 0, 0.8);
+    }
 
+    .card.flipped:hover {
+        transform: scale(1);
+        box-shadow: none;
     }
 
     /* Interior de la carta */
@@ -132,7 +136,7 @@
 
     /* Cara trasera */
     .card-back {
-        background: url('./assets/images/light-rock-texture.jpg') center/cover no-repeat;
+        background: url('./assets/images/light-rock-texture.png') center/cover no-repeat;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -165,7 +169,7 @@
     // Componente de carta
     function Card({flipped, image, onClick}) {
         return (
-            <div className="card" onClick={onClick}>
+            <div className={`card ${flipped ? 'flipped' : ''}`} onClick={onClick}>
                 <div className={`card-inner ${flipped ? 'flipped' : ''}`}>
                     <div className="card-front">
                         <img 
@@ -184,14 +188,31 @@
     function MemoryGame() {
         const [cards, setCards] = React.useState([]); // Array de cartas
         const [flippedCards, setFlippedCards] = React.useState([]); // Cartas volteadas
-        
+
         // Inicializar el juego con 16 cartas (8 pares)
         React.useEffect(() => {
-            // TODO: Lógica para cargar imágenes de kaijus y crear pares
-            const dummyCards = Array.from({length: 16}, (_, index) => ({ 
-                id: index, 
-                image: `./assets/images/placeholder.png`, 
-                flipped: false 
+            // Array de kaijus (imágenes)
+            const kaijus = [
+                "anguirus", "baragon", "battra", "battra-larva", "biollante", "burning-godzilla",
+                "destoroyah", "ebirah", "gabara", "gamera", "gigan", "godzilla-1989", "godzilla-2000",
+                "godzilla-monsterverse", "godzilla-ultima", "gorosaurus", "gyaos", "hedorah",
+                "jet-jaguar", "kamacura", "keizer-ghidorah", "king-caesar", "king-ghidorah", "kiryu",
+                "kong", "kumonga", "little-godzilla", "manda", "mecha-king-ghidorah", "mechagodzilla",
+                "megaguirus", "megalon", "minilla", "mogera", "monster-x", "mothra", "mothra-larva",
+                "muto", "orga", "rodan", "salunga", "shin-godzilla", "skullcrawler", "spacegodzilla",
+                "super-mechagodzilla", "titanosaurus"
+            ];
+
+            // Seleccionar 8 kaijus al azar y crear pares
+            const selectedKaijus = [...kaijus].sort(() => 0.5 - Math.random()).slice(0, 8);
+
+            // Crear pares de cartas
+            const pairedCards = [...selectedKaijus, ...selectedKaijus].sort(() => 0.5 - Math.random());
+            
+            // Crear objetos de carta con ID e imagen
+            const dummyCards = pairedCards.map((name, index) => ({
+                id: index,
+                image: `./assets/images/kaijus/${name}.png` // Ruta de la imagen
             }));
             
             // Setear las cartas en el estado
@@ -201,7 +222,11 @@
 
         // Manejo de clic en la carta
         function handleCardClick(id) {
-            console.log("Carta clickeada:", id);
+            // Verificar si la carta ya está volteada o si hay dos cartas volteadas
+            if (flippedCards.includes(id)) return ;
+            // Actualizar el estado de las cartas volteadas
+            setFlippedCards(prev => [...prev, id]);
+
             // TODO: Lógica para manejar el clic en la carta
         }
 
@@ -212,7 +237,7 @@
                     <Card 
                         key={card.id} 
                         image={card.image} 
-                        flipped={false} // TODO: Cambiar según el estado de la carta
+                        flipped={flippedCards.includes(card.id)} // TODO: Cambiar según el estado de la carta
                         onClick={() => handleCardClick(card.id)} 
                     />
                 ))}
