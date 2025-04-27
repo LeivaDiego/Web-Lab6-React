@@ -222,6 +222,8 @@
         const [isRunning, setIsRunning] = React.useState(false); // Estado del temporizador
         // Estado del juego
         const [gameOver, setGameOver] = React.useState(false); // Estado del juego
+        // Estado de la puntuación
+        const [bestScore, setBestScore] = React.useState(null); // Nuevo estado para el récord
 
 
         // Iniciar el temporizador
@@ -261,6 +263,13 @@
                 image: `./assets/images/kaijus/${name}.png` // Ruta de la imagen
             }));
 
+            // Guardar el récord en el localStorage
+            const storedRecord = localStorage.getItem('kaiju-memory-record');
+            if (storedRecord) {
+                setBestScore(parseInt(storedRecord));
+            }
+
+
             // Setear las cartas en el estado
             setCards(kaijuCards);
             setFlippedCards([]); // Reiniciar cartas elegidas
@@ -270,6 +279,8 @@
             setMoves(0); // Reiniciar movimientos
             setIsRunning(false); // Reiniciar estado del temporizador
             setGameOver(false); // Reiniciar estado del juego
+
+
         }
 
         React.useEffect(() => {
@@ -313,6 +324,15 @@
 
                             // Verificar si se han emparejado todas las cartas
                             if (updatedMatches.length === cards.length) {
+                                // Calcular el puntaje final
+                                const finalScore = calculateScore(moves + 1, time);
+                                // Obtener el récord actual
+                                const currentRecord = parseInt(localStorage.getItem('kaiju-memory-record')) || 0;
+                                // Actualizar el récord si el nuevo puntaje es mayor
+                                if (finalScore > currentRecord) {
+                                    localStorage.setItem('kaiju-memory-record', finalScore);
+                                    setBestScore(finalScore);
+                                }
                                 setGameOver(true); // Terminar el juego
                                 setTimeout(() => setGameOver(true), 300);
                                 setIsRunning(false); // Detener el temporizador
@@ -393,7 +413,7 @@
                 <div className="hud">
                     <div>⏱️ Time: {formatTime(time)}</div>
                     <div>🕹️ Moves: {moves}</div>
-                    <div>🏆 Best Score: --</div> {/*TODO: Record de victoria*/}
+                    <div>🏆 Best Score: {bestScore !== null ? bestScore : '--'}</div>
                 </div>
 
                 <div className="card-grid">
