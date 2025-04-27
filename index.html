@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kaiju Memory Game</title>
+
+  <!-- Importar React, ReactDOM y Babel -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* Estilos generales */
+    body {
+      margin: 0;
+      padding: 0;
+      background: url('assets/images/main-background.jpeg') center/cover no-repeat fixed;
+      font-family: 'Arial', sans-serif;
+      color: white;
+      text-align: center;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: -1;
+    }
+
+    h1 {
+      margin-top: 20px;
+      font-family: 'KaijuFont', sans-serif;
+      font-size: 2.5rem;
+      text-shadow: 2px 2px 5px black;
+    }
+
+    /* HUD */
+    .hud {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin: 10px 0 20px;
+      font-size: 1.2rem;
+    }
+
+    /* Contenedor principal */
+    .game-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-bottom: 30px;
+    }
+
+    /* Grid de cartas */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 100px);
+      grid-gap: 15px;
+      justify-content: center;
+    }
+
+    /* Carta base (sin lógica todavía) */
+    .card {
+      width: 100px;
+      height: 140px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid white;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.3s;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    }
+
+    .card:hover {
+      transform: scale(1.05);
+    }
+
+    /* Fuente personalizada */
+    @font-face {
+    font-family: "KaijuFont";
+    src: url('./assets/fonts/Godzilla.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+  </style>
+</head>
+
+<body>
+  <h1>Kaiju Memory Game</h1>
+
+  <div class="hud">
+    <div>⏱ Time: 0:00</div>
+    <div>🎯 Moves: 0</div>
+    <div>🏆 Best Score: --</div>
+  </div>
+
+  <div class="game-container">
+    <div id="root"></div>
+  </div>
+
+  <script type="text/babel">
+    function MemoryGame() {
+      // Estado inicial de HUD
+      // TODO: Logica de tiempo, movimientos y mejor puntuación
+      return (
+        <div className="card-grid">
+          {/* Grid vacio */}
+          {Array.from({ length: 30 }).map((_, index) => (
+            <div key={index} className="card"></div>
+          ))}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<MemoryGame />);
+  </script>
+</body>
+</html>
