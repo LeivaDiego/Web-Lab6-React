@@ -24,7 +24,7 @@
     body {
       margin: 0;
       padding: 0;
-      background: url('assets/images/background.jpeg') center/cover no-repeat fixed;
+      background: url('./assets/images/cracked-magma-texture.jpeg') center/cover no-repeat fixed;
       font-family: 'Arial', sans-serif;
       color: black;
       text-align: center;
@@ -33,7 +33,7 @@
       flex-direction: column;
     }
 
-    /* Capa de opacidad */
+    /* Capa de opacidad para fondo */
     body::before {
     content: "";
     position: fixed;
@@ -80,19 +80,70 @@
       justify-content: center;
     }
 
-    /* Carta base */
+    /* --- Cartas -- */
+    /* Carta Base */
     .card {
-      width: 150px;
-      height: 150px;
-      background: grey;
-      border: 5px solid white;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: transform 0.3s;
+        width: 150px;
+        height: 150px;
+        perspective: 1000px;
+        transition: transform 0.3s;
     }
 
+    /* Carta al pasar el mouse */
     .card:hover {
-      transform: scale(1.05);
+        transform: scale(1.05);
+        box-shadow: 0 5px 25px rgba(255, 100, 0, 0.8);
+
+    }
+
+    /* Interior de la carta */
+    .card-inner {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.6s ease;
+    }
+
+    /* Rotacion de la carta */
+    .card-inner.flipped {
+        transform: rotateY(180deg);
+    }
+
+    /* Caras de la carta */
+    .card-front, .card-back {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        border-radius: 10px;
+        border: 5px solid rgb(49, 49, 49);
+        overflow: hidden;
+        backface-visibility: hidden;
+    }
+
+    /* Cara frontal */
+    .card-front {
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: rotateY(180deg);
+    }
+
+    /* Cara trasera */
+    .card-back {
+        background: url('./assets/images/light-rock-texture.jpg') center/cover no-repeat;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Icono de la carta */
+    .card-back::after {
+        content: '';
+        background: url('./assets/images/kaiju-logo.png') center/cover no-repeat;
+        width: 70%;
+        height: 70%;
     }
   </style>
 </head>
@@ -111,17 +162,62 @@
   </div>
 
   <script type="text/babel">
+    // Componente de carta
+    function Card({flipped, image, onClick}) {
+        return (
+            <div className="card" onClick={onClick}>
+                <div className={`card-inner ${flipped ? 'flipped' : ''}`}>
+                    <div className="card-front">
+                        <img 
+                            src={image} 
+                            alt="Kaiju" 
+                            style={{ width: '100%', height: '100%' }} 
+                        />
+                    </div>
+                    <div className="card-back"></div>
+                </div>
+            </div>
+        );
+    }
+
+    // Componente principal del juego
     function MemoryGame() {
-      // Estado inicial de HUD
-      // TODO: Logica de tiempo, movimientos y mejor puntuación
-      return (
-        <div className="card-grid">
-          {/* Grid vacio */}
-          {Array.from({ length: 16 }).map((_, index) => (
-            <div key={index} className="card"></div>
-          ))}
-        </div>
-      );
+        const [cards, setCards] = React.useState([]); // Array de cartas
+        const [flippedCards, setFlippedCards] = React.useState([]); // Cartas volteadas
+        
+        // Inicializar el juego con 16 cartas (8 pares)
+        React.useEffect(() => {
+            // TODO: Lógica para cargar imágenes de kaijus y crear pares
+            const dummyCards = Array.from({length: 16}, (_, index) => ({ 
+                id: index, 
+                image: `./assets/images/placeholder.png`, 
+                flipped: false 
+            }));
+            
+            // Setear las cartas en el estado
+            setCards(dummyCards);
+        }, []);
+
+
+        // Manejo de clic en la carta
+        function handleCardClick(id) {
+            console.log("Carta clickeada:", id);
+            // TODO: Lógica para manejar el clic en la carta
+        }
+
+        // Renderizar las cartas
+        return (
+            <div className="card-grid">
+                {cards.map(card => (
+                    <Card 
+                        key={card.id} 
+                        image={card.image} 
+                        flipped={false} // TODO: Cambiar según el estado de la carta
+                        onClick={() => handleCardClick(card.id)} 
+                    />
+                ))}
+            </div>
+        )
     }
 
     const root = ReactDOM.createRoot(document.getElementById('root'));
