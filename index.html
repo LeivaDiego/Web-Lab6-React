@@ -14,70 +14,70 @@
 
     /* Fuente personalizada */
     @font-face {
-    font-family: "KaijuFont";
-    src: url('./assets/fonts/Godzilla.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
+        font-family: "KaijuFont";
+        src: url('./assets/fonts/Godzilla.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
     }
 
     /* Estilos generales */
     body {
-      margin: 0;
-      padding: 0;
-      background: url('./assets/images/cracked-magma-texture.png') center/cover no-repeat fixed;
-      font-family: 'Arial', sans-serif;
-      color: black;
-      text-align: center;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+        margin: 0;
+        padding: 0;
+        background: url('./assets/images/cracked-magma-texture.png') center/cover no-repeat fixed;
+        font-family: 'Arial', sans-serif;
+        color: black;
+        text-align: center;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
     }
 
     /* Capa de opacidad para fondo */
     body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: -1;
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: -1;
     }
 
     /* Titulo */
     h1 {
-      font-family: 'KaijuFont', sans-serif;
-      font-size: 3rem;
-      color: white;
-      text-shadow: 2px 2px 2px black;
+        font-family: 'KaijuFont', sans-serif;
+        font-size: 3rem;
+        color: white;
+        text-shadow: 2px 2px 2px black;
     }
 
     /* HUD */
     .hud {
-      display: flex;
-      justify-content: center;
-      color: white;
-      gap: 2rem;
-      margin: 10px 0 20px;
-      font-size: 1.2rem;
+        display: flex;
+        justify-content: center;
+        color: white;
+        gap: 2rem;
+        margin: 10px 0 20px;
+        font-size: 1.2rem;
     }
 
     /* Contenedor principal */
     .game-container {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding-bottom: 30px;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-bottom: 30px;
     }
 
     /* Grid de cartas */
     .card-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 150px);
-      grid-gap: 25px;
-      justify-content: center;
+        display: grid;
+        grid-template-columns: repeat(4, 150px);
+        grid-gap: 25px;
+        justify-content: center;
     }
 
     /* --- Cartas -- */
@@ -90,12 +90,13 @@
     }
 
     /* Carta al pasar el mouse */
-    .card:hover:not(.flipped) {
+    .card:hover:not(.flipped):not(.matched):not(.mismatch) {
         transform: scale(1.05);
         box-shadow: 0 5px 25px rgba(255, 100, 0, 0.8);
     }
 
-    .card.flipped:hover {
+    /* Carta volteada al pasar el mouse*/
+    .card.flipped:hover:not(.matched):not(.mismatch) {
         transform: scale(1);
         box-shadow: none;
     }
@@ -149,6 +150,33 @@
         width: 70%;
         height: 70%;
     }
+
+    /* Animación de la carta */
+    @keyframes matchPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    /* Animación de la carta al no coincidir */
+    @keyframes mismatchShake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-8px); }
+        50% { transform: translateX(8px); }
+        75% { transform: translateX(-8px); }
+    }
+
+    /* Cartas bien emparejadas */
+    .card.matched {
+        animation: matchPulse 0.8s ease;
+        box-shadow: 0 5px 25px 5px limegreen;
+    }
+
+    /* Cartas mal emparejadas */
+    .card.mismatch {
+        animation: mismatchShake 0.6s ease;
+        box-shadow: 0 5px 25px 5px red;
+    }
   </style>
 </head>
 
@@ -167,9 +195,9 @@
 
   <script type="text/babel">
     // Componente de carta
-    function Card({flipped, image, onClick}) {
+    function Card({ flipped, image, animation, onClick }) {
         return (
-            <div className={`card ${flipped ? 'flipped' : ''}`} onClick={onClick}>
+            <div className={`card ${flipped ? 'flipped' : ''} ${animation || ''}`} onClick={onClick}>
                 <div className={`card-inner ${flipped ? 'flipped' : ''}`}>
                     <div className="card-front">
                         <img 
@@ -184,10 +212,13 @@
         );
     }
 
+
     // Componente principal del juego
     function MemoryGame() {
         const [cards, setCards] = React.useState([]); // Array de cartas
-        const [flippedCards, setFlippedCards] = React.useState([]); // Cartas volteadas
+        const [flippedCards, setFlippedCards] = React.useState([]); // Cartas elegidas por el jugador
+        const [matchedCards, setMatchedCards] = React.useState([]); // Cartas emparejadas
+        const [animatingCards, setAnimatingCards] = React.useState({}); // Cartas en animación
 
         // Inicializar el juego con 16 cartas (8 pares)
         React.useEffect(() => {
@@ -222,12 +253,67 @@
 
         // Manejo de clic en la carta
         function handleCardClick(id) {
-            // Verificar si la carta ya está volteada o si hay dos cartas volteadas
+            // Verificar si la carta ya está emparejada
+            if (matchedCards.includes(id)) return ;
+            // Verificar si hay dos cartas emparejadas
+            if (flippedCards.length === 2) return ;
+            // Verificar si la carta ya está volteada
             if (flippedCards.includes(id)) return ;
-            // Actualizar el estado de las cartas volteadas
-            setFlippedCards(prev => [...prev, id]);
 
-            // TODO: Lógica para manejar el clic en la carta
+            // Voltear la carta
+            const newFlippedCards = [...flippedCards, id];
+            setFlippedCards(newFlippedCards);
+
+            // Si hay dos cartas volteadas
+            if (newFlippedCards.length === 2) {
+                // Inicializar las variables para las cartas
+                const [firstId, secondId] = newFlippedCards;
+                const firstCard = cards.find(card => card.id === firstId);
+                const secondCard = cards.find(card => card.id === secondId);
+
+                // Verificar si las cartas coinciden
+                if (firstCard.image === secondCard.image) {
+                    // Si coinciden, agregar a las cartas emparejadas
+                    setMatchedCards(prev => [...prev, firstId, secondId]);
+                    
+                    // Animar las cartas emparejadas
+                    setAnimatingCards(prev => ({
+                        ...prev,
+                        [firstId]: 'matched',
+                        [secondId]: 'matched'
+                    }));
+
+                    // Quitar la animación después de 1 segundo
+                    setTimeout(() => {
+                        setAnimatingCards(prev => {
+                            const updated = { ...prev };
+                            delete updated[firstId];
+                            delete updated[secondId];
+                            return updated;
+                        });
+                        setFlippedCards([]); // Reiniciar las cartas seleccionadas por el jugador
+                    }, 1000);
+
+                } else {
+                    // Si no coinciden, agregar animación de error
+                    setAnimatingCards(prev => ({
+                        ...prev,
+                        [firstId]: 'mismatch',
+                        [secondId]: 'mismatch'
+                    }));
+
+                    // Esperar 1 segundo y voltear las cartas de nuevo
+                    setTimeout(() => {
+                        setAnimatingCards(prev => {
+                            const updated = { ...prev };
+                            delete updated[firstId];
+                            delete updated[secondId];
+                            return updated;
+                        });
+                        setFlippedCards([]); // Reiniciar las cartas seleccionadas por el jugador
+                    }, 1000);
+                }
+            }
         }
 
         // Renderizar las cartas
@@ -237,7 +323,8 @@
                     <Card 
                         key={card.id} 
                         image={card.image} 
-                        flipped={flippedCards.includes(card.id)} // TODO: Cambiar según el estado de la carta
+                        flipped={flippedCards.includes(card.id) || matchedCards.includes(card.id)}
+                        animation={animatingCards[card.id]}
                         onClick={() => handleCardClick(card.id)} 
                     />
                 ))}
